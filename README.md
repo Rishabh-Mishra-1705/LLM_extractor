@@ -8,7 +8,7 @@ An intelligent document processing system that leverages **deepseeks's deepseek/
 ## ✨ Key Features
 
 ### 🎯 **Intelligent Data Extraction**
-- **AI-Powered Processing**: Uses OpenAI's GPT models via OpenRouter API for sophisticated document understanding
+- **AI-Powered Processing**: Uses deepseeks's "deepseek/deepseek-r1-0528:free" model models via OpenRouter API for sophisticated document understanding
 - **Smart Field Recognition**: Automatically identifies and extracts 20+ specific insurance fields including policy details, coverage types, and financial information
 - **Multi-Language Support**: Preserves original language and formatting from documents
 - **Structured Output**: Returns clean JSON with proper data types and formatting
