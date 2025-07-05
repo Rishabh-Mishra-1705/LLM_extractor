@@ -3,7 +3,7 @@
 
 ## Project Overview
 
-An intelligent document processing system that leverages **OpenAI's GPT models** to automatically extract structured data from reinsurance documents. The application combines modern web technologies with advanced AI to transform unstructured DOCX files into organized, queryable data formats.
+An intelligent document processing system that leverages **deepseeks's deepseek/deepseek-r1-0528:free model** to automatically extract structured data from reinsurance documents. The application combines modern web technologies with advanced AI to transform unstructured DOCX files into organized, queryable data formats.
 
 ## ✨ Key Features
 
