@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reinsurance Document Processor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            font-weight: 300;
+            letter-spacing: -0.5px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            border: 2px dashed #e9ecef;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            background: #f0f3ff;
+        }
+
+        .upload-section.dragover {
+            border-color: #667eea;
+            background: #e8f2ff;
+            transform: scale(1.02);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .file-name {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #e8f5e8;
+            border-radius: 20px;
+            color: #2d5a2d;
+            font-weight: 500;
+            display: none;
+        }
+
+        .process-btn {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+            display: none;
+        }
+
+        .process-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(17, 153, 142, 0.4);
+        }
+
+        .process-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            background: #ffffff;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #667eea;
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            font-weight: 500;
+        }
+
+        .result-content {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+        }
+
+        .data-section {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            font-weight: 600;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .data-item {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        .data-item .label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .data-item .value {
+            color: #2c3e50;
+            font-size: 1em;
+            word-break: break-word;
+        }
+
+        .data-item .value.empty {
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .data-list {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .data-list .list-item {
+            background: #ffffff;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 3px solid #28a745;
+            font-size: 0.95em;
+        }
+
+        .data-list .list-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .toggle-raw {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-raw:hover {
+            background: #5a6268;
+        }
+
+        .raw-data {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-card .number {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #667eea;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e9ecef;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fff5f5;
+            border-left-color: #e53e3e;
+            color: #c53030;
+        }
+
+        .success {
+            background: #f0fff4;
+            border-left-color: #38a169;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .upload-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Reinsurance Document Processor</h1>
+
+        <form id="uploadForm">
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-icon">📄</div>
+                <div class="file-input-wrapper">
+                    <input type="file" name="file" accept=".docx" required class="file-input" id="fileInput">
+                    <label for="fileInput" class="file-input-label">
+                        Choose DOCX File
+                    </label>
+                </div>
+                <div class="file-name" id="fileName"></div>
+                <p style="color: #6c757d; margin-top: 10px; font-size: 0.9em;">
+                    Drag & drop a file here or click to browse
+                </p>
+            </div>
+
+            <div style="text-align: center;">
+                <button type="submit" class="process-btn" id="processBtn">
+                    Process Document
+                </button>
+            </div>
+        </form>
+
+        <div class="result" id="resultContainer">
+            <h2>Extracted Data</h2>
+            <div class="result-content" id="resultOutput"></div>
+        </div>
+    </div>
+
+    <script>
+        const uploadForm = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const processBtn = document.getElementById('processBtn');
+        const uploadSection = document.getElementById('uploadSection');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultOutput = document.getElementById('resultOutput');
+
+        // File input change handler
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Drag and drop functionality
+        uploadSection.addEventListener('dragover', handleDragOver);
+        uploadSection.addEventListener('dragleave', handleDragLeave);
+        uploadSection.addEventListener('drop', handleDrop);
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                displayFileName(file.name);
+                showProcessButton();
+            }
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.name.endsWith('.docx')) {
+                    fileInput.files = files;
+                    displayFileName(file.name);
+                    showProcessButton();
+                } else {
+                    alert('Please select a DOCX file.');
+                }
+            }
+        }
+
+        function displayFileName(name) {
+            fileName.textContent = `Selected: ${name}`;
+            fileName.style.display = 'block';
+        }
+
+        function showProcessButton() {
+            processBtn.style.display = 'inline-block';
+        }
+
+        // Form submission handler
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                // Show loading state
+                resultContainer.style.display = 'block';
+                resultContainer.className = 'result';
+                resultOutput.innerHTML = '<div class="loading"><div class="spinner"></div>Processing document...</div>';
+                processBtn.disabled = true;
+
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultContainer.classList.add('success');
+                    displayFormattedData(data);
+                } else {
+                    throw new Error(data.error || 'Processing failed');
+                }
+            } catch (error) {
+                resultContainer.classList.add('error');
+                resultOutput.textContent = `Error: ${error.message}`;
+            } finally {
+                processBtn.disabled = false;
+            }
+        });
+
+        function displayFormattedData(data) {
+            // Create formatted display
+            let html = '';
+
+            // Add summary stats if we can calculate them
+            const stats = calculateStats(data);
+            if (stats.length > 0) {
+                html += '<div class="summary-stats">';
+                stats.forEach(stat => {
+                    html += `<div class="stat-card">
+                        <div class="number">${stat.value}</div>
+                        <div class="label">${stat.label}</div>
+                    </div>`;
+                });
+                html += '</div>';
+            }
+
+            // Process each section of data
+            for (const [key, value] of Object.entries(data)) {
+                html += `<div class="data-section">
+                    <h3>${formatLabel(key)}</h3>`;
+
+                if (Array.isArray(value)) {
+                    if (value.length > 0) {
+                        html += '<div class="data-list">';
+                        value.forEach(item => {
+                            html += `<div class="list-item">${formatValue(item)}</div>`;
+                        });
+                        html += '</div>';
+                    } else {
+                        html += '<div class="data-item"><div class="value empty">No data available</div></div>';
+                    }
+                } else if (typeof value === 'object' && value !== null) {
+                    html += '<div class="data-grid">';
+                    for (const [subKey, subValue] of Object.entries(value)) {
+                        html += `<div class="data-item">
+                            <div class="label">${formatLabel(subKey)}</div>
+                            <div class="value ${subValue ? '' : 'empty'}">${formatValue(subValue) || 'Not specified'}</div>
+                        </div>`;
+                    }
+                    html += '</div>';
+                } else {
+                    html += `<div class="data-item">
+                        <div class="value ${value ? '' : 'empty'}">${formatValue(value) || 'Not specified'}</div>
+                    </div>`;
+                }
+
+                html += '</div>';
+            }
+
+            // Add toggle for raw data
+            html += '<button class="toggle-raw" onclick="toggleRawData()">Show Raw JSON</button>';
+            html += `<div class="raw-data" id="rawData">${JSON.stringify(data, null, 2)}</div>`;
+
+            resultOutput.innerHTML = html;
+        }
+
+        function calculateStats(data) {
+            const stats = [];
+
+            // Count total fields
+            let totalFields = 0;
+            let filledFields = 0;
+
+            function countFields(obj) {
+                if (Array.isArray(obj)) {
+                    return obj.length;
+                } else if (typeof obj === 'object' && obj !== null) {
+                    let count = 0;
+                    for (const [key, value] of Object.entries(obj)) {
+                        totalFields++;
+                        if (value && value !== '' && value !== null) {
+                            filledFields++;
+                        }
+                        if (typeof value === 'object') {
+                            count += countFields(value);
+                        }
+                    }
+                    return count;
+                }
+                return 0;
+            }
+
+            countFields(data);
+
+            if (totalFields > 0) {
+                stats.push({
+                    label: 'Total Fields',
+                    value: totalFields
+                });
+
+                stats.push({
+                    label: 'Filled Fields',
+                    value: filledFields
+                });
+
+                stats.push({
+                    label: 'Completion',
+                    value: Math.round((filledFields / totalFields) * 100) + '%'
+                });
+            }
+
+            return stats;
+        }
+
+        function formatLabel(key) {
+            return key
+                .replace(/([A-Z])/g, ' $1')
+                .replace(/^./, str => str.toUpperCase())
+                .replace(/_/g, ' ');
+        }
+
+        function formatValue(value) {
+            if (value === null || value === undefined) {
+                return '';
+            }
+
+            if (typeof value === 'object') {
+                return JSON.stringify(value, null, 2);
+            }
+
+            return String(value);
+        }
+
+        function toggleRawData() {
+            const rawData = document.getElementById('rawData');
+            const button = document.querySelector('.toggle-raw');
+
+            if (rawData.style.display === 'none' || rawData.style.display === '') {
+                rawData.style.display = 'block';
+                button.textContent = 'Hide Raw JSON';
+            } else {
+                rawData.style.display = 'none';
+                button.textContent = 'Show Raw JSON';
+            }
+        }
+    </script>
+</body>
+</html>
