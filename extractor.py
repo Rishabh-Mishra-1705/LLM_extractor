@@ -91,7 +91,7 @@ fields_to_extract = [
 # Initialize client
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key="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",
+    api_key="your-api-token",
 )
 
 
